@@ -207,4 +207,4 @@ Subject: [...]
 
 Guidance: the agent adds a dated line here whenever you correct a draft or a rule, so the correction sticks.
 
-- [YYYY-MM-DD]: [correction]
+- None yet.
