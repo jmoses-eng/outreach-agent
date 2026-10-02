@@ -12,7 +12,7 @@ This folder is a weekly outreach agent for a small product business. It research
 
 ## What to do when asked
 
-- **`config/CONTEXT.md` does not exist:** the agent is not set up. Use the `outreach-setup` skill.
+- **`config/CONTEXT.md` does not exist, or its first line says SETUP IN PROGRESS:** the agent is not set up. Use the `outreach-setup` skill, which resumes where it stopped.
 - **"run the Monday routine"** (or Tuesday, Wednesday, Thursday, Friday): read `engine/RULES.md`, then `config/CONTEXT.md`, then follow the matching file in `routines/` exactly.
 - **"update my outreach setup"**, or a change to pricing, voice, lanes or relationships: use the `outreach-setup` skill to change that section of `config/CONTEXT.md`.
 - **A correction to a draft that is really a rule:** add a dated line to "Founder corrections" in `config/CONTEXT.md`.
@@ -21,5 +21,6 @@ This folder is a weekly outreach agent for a small product business. It research
 ## Rules that always hold
 
 - Never send email or post a message to a prospect. Gmail drafts only.
+- Never contact anyone marked `do-not-contact`, and never lift that status without the founder saying so.
 - Never guess an email address. See the Contact Verification Standard in `engine/RULES.md`.
 - Never commit `config/CONTEXT.md` or anything in `data/`.

@@ -6,7 +6,7 @@ This routine drafts for three deal types. It does NOT draft Exclusive Partnershi
 
 ## Pre-flight
 
-`node "<AGENT_DIR>/engine/db.mjs" validate`
+`node "<AGENT_DIR>/engine/db.mjs" validate`. If it reports NOT READY, stop.
 
 ## Step 1: Pull targets ready to draft
 

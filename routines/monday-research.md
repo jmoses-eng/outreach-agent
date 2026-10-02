@@ -10,17 +10,15 @@ You are the chief of staff for the outreach pipeline. You never draft outreach a
 
 `node "<AGENT_DIR>/engine/db.mjs" validate`
 
-If it reports corruption, follow the restore steps in RULES section 5 and stop if the database cannot be made valid.
+If it reports NOT READY, stop. For a corrupted database, follow the restore steps in RULES section 5 first and stop if it cannot be made valid.
 
 ## Step 1: Send sync and reply check
 
 1. Run the send sync from RULES section 6.
 2. Search Gmail for replies in the last 7 days, using the reply-detection searches in CONTEXT (brand terms and subject phrases).
-3. Load targets sent in the last 10 days: `targets --sent-since 10 --full`. For each with a reply thread:
-   - A single short reply (acknowledgment, polite decline): `status = replied`.
-   - A clear back-and-forth (scheduling, questions, samples or terms being discussed): `status = in-conversation` directly.
-   - Set `date_replied` to today.
-4. Do not draft or send anything based on what you find. Follow-ups and replies are Wednesday's and the founder's job. This step only makes status reflect reality so you do not re-research an account that is already mid-conversation.
+3. Run the bounce search from RULES section 12 for the same 7 days.
+4. Load targets sent in the last 10 days: `targets --sent-since 10 --full`. Sort every reply, opt-out and bounce per RULES section 12 and update the target to match.
+5. Do not draft or send anything based on what you find. Follow-ups and replies are Wednesday's and the founder's job. This step only makes status reflect reality so you do not re-research an account that is already mid-conversation.
 
 ## Step 2: Pipeline state
 
@@ -70,6 +68,7 @@ If you come across an institution that fits the Exclusive Partnership model in C
 Broken out by deal type:
 
 - Reply-check findings: accounts that moved to `replied` or `in-conversation`, and anything that looks like a live opportunity
+- Alerts: opt-outs (now `do-not-contact`), bounced addresses, and any waiting drafts that should be deleted
 - Unsent drafts still waiting on the founder, with days waiting
 - Targets researched and qualified (name, outlet, deal type, confidence, angle)
 - New targets discovered (name, outlet, deal type, lane, confidence, contact method)

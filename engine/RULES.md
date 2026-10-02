@@ -4,7 +4,7 @@ Every routine reads this file and `config/CONTEXT.md` before doing anything.
 
 - This file is the engine. It is the same for every business and is not edited per business.
 - `config/CONTEXT.md` is the business: brand, voice, lanes, offers, cadences. Where this file says "per CONTEXT", look there.
-- If `config/CONTEXT.md` does not exist, stop and tell the user to run setup ("run outreach setup"). Do not improvise a business.
+- Every routine starts with `validate` (section 5). If it reports NOT READY because `config/CONTEXT.md` is missing or setup is unfinished, stop and tell the user to say "run setup". Do not improvise a business.
 
 `<AGENT_DIR>` below means the folder that contains this `engine/` folder.
 
@@ -66,7 +66,7 @@ Bracketed stages are skipped when they do not apply:
 - `negotiating`, `agreement`: every deal type except PR
 - `in-development`: custom Corporate Gifting orders, and Exclusive Partnership
 
-Terminal states: `disqualified`, `inactive`.
+Terminal states: `disqualified`, `inactive`, `do-not-contact`. A `do-not-contact` target is never drafted for, never followed up and never re-added (section 12).
 
 What the middle statuses mean, precisely:
 
@@ -86,7 +86,7 @@ Run it with no command to see every command. The ones routines use most:
 
 | Need | Command |
 |---|---|
-| Health check | `validate` |
+| Pre-flight (database readable, setup finished) | `validate` |
 | Pipeline counts | `summary` |
 | List targets | `targets --status researched --deal_type "Wholesale"` (add `--full` or `--fields a,b`) |
 | One target with its drafts | `target 42` |
@@ -103,6 +103,7 @@ Rules for writing:
 
 - **Anything longer than a few words goes through a JSON file**, not the command line. Write the record to `<AGENT_DIR>/data/tmp/<name>.json` with the file-writing tool, then pass `--file`. This avoids quoting problems with apostrophes and line breaks on both Windows and Mac. `add-target` accepts an array, so a whole batch can go in one file.
 - `add-target` refuses a duplicate (same email, or same name and outlet) and reports which existing record it matched. Read that record and update it instead. Only use `--force` when the founder has said the second record is intentional.
+- `add-target` always refuses a match with a `do-not-contact` record, and warns when someone else at the same outlet opted out. Do not work around either. Report it to the founder.
 - Dates are `YYYY-MM-DD`.
 - The helper backs up a file before every write and keeps the last 30 backups. If `validate` reports corruption: run `backups`, then `restore <file name>`, then tell the founder what happened.
 
@@ -154,3 +155,31 @@ Routines fire on a schedule with nobody watching. Do not stop to ask a question 
 ## 11. Founder corrections
 
 When the founder corrects a draft or a rule in conversation, add a dated line to the "Founder corrections" section at the bottom of `config/CONTEXT.md` so every later run follows it. The founder's word about a real-world relationship (already a customer, already declined, a friend) overrides anything found by research: update the database to match.
+
+## 12. Reply triage, opt-outs and bounces
+
+Whenever a routine checks Gmail for replies, it also runs the bounce search, and sorts every message it finds into one of these. Read the message itself; do not judge from the subject line.
+
+| What came back | Status | Also |
+|---|---|---|
+| A single short reply: acknowledgment, "not right now", polite decline | `replied` | `date_replied` = today |
+| A real back-and-forth: scheduling, questions, samples or terms | `in-conversation` | `date_replied` = today. Flag as a live opportunity. |
+| **Opt-out:** "stop", "unsubscribe", "remove me", "do not contact me again", or any hostile reply | `do-not-contact` | See below |
+| **Bounce:** a delivery failure for an address we sent to | `disqualified` | See below |
+| An out-of-office auto-reply | no change | Note the return date in `notes` if one is given |
+
+**Opt-outs (NON-NEGOTIABLE)**
+
+- Set `status = do-not-contact`, `date_replied` = today, and quote their wording with the date in `notes`.
+- Never draft anything further for that person, on any channel, for any deal type. The database enforces this: the status cannot be lifted or the contact re-added without the founder's explicit say-so.
+- If a Gmail draft for that person is still waiting, list it in the run report under "Delete these drafts". Do not send a reply or an apology on the founder's behalf.
+- A plain "no thanks" or "not a fit right now" is a decline, not an opt-out. Use `replied`. When it is unclear which one it is, treat it as an opt-out.
+- If the opt-out speaks for the whole organization ("please take us off your list"), set every target at that outlet to `do-not-contact`.
+
+**Bounces**
+
+Search: `from:(mailer-daemon OR postmaster) OR subject:("undeliverable" OR "delivery status notification" OR "delivery failure" OR "returned mail")` over the same period as the reply check. Match each bounce to a target by the failed address.
+
+- Set `status = disqualified` and add to `notes`: "Email bounced: <address>, <date>. Needs a newly verified contact to re-enter."
+- Never retry the same address and never try a guessed variant of it. A bounce usually means the address was not verified properly in the first place (section 2).
+- Report bounces as alerts in the run report. Do not draft a replacement message. If a later Monday finds a verified contact from an official page, the organization can re-enter as a new, properly verified record.

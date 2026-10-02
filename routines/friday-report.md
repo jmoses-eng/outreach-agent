@@ -4,6 +4,8 @@ Read `engine/RULES.md` and `config/CONTEXT.md` first. `<AGENT_DIR>` is the folde
 
 ## Step 1: Sync, then pull the report
 
+First run `node "<AGENT_DIR>/engine/db.mjs" validate`. If it reports NOT READY, stop.
+
 1. Run the send sync from RULES section 6 so "sent this week" is accurate.
 2. `node "<AGENT_DIR>/engine/db.mjs" report`
 
@@ -13,7 +15,7 @@ Present it to the founder, reformatted for readability if needed. Do not recompu
 
 ## Step 2: Replies not yet logged
 
-Search Gmail for the last 7 days using the reply-detection searches in CONTEXT. Flag any reply to outreach that the database does not reflect yet (no `date_replied`), with its target and deal type, and update the status per the reply rules in the Wednesday routine.
+Search Gmail for the last 7 days using the reply-detection searches in CONTEXT, plus the bounce search from RULES section 12. For anything the database does not reflect yet, flag it with its target and deal type, then sort it per RULES section 12. Opt-outs and bounces go at the top of the report as alerts.
 
 ## Step 3: Unsent drafts
 

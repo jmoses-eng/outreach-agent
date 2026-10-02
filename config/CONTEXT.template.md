@@ -1,7 +1,10 @@
+<!-- SETUP IN PROGRESS. Sections done: none -->
 # Outreach Agent: Business Context
 
 <!--
-This is the template. Setup copies it to config/CONTEXT.md and fills it in from an interview.
+This is the template. Setup copies it to config/CONTEXT.md and fills it in from an interview,
+one section at a time. The first line tracks progress and is removed when setup is finished;
+until then no routine will run.
 Text in [square brackets] is a placeholder. Lines starting with "Guidance:" explain what belongs
 in a section and are removed once it is filled in.
 Every routine reads the finished file at the start of every run, so anything written here is followed.
@@ -174,7 +177,7 @@ Tone: shorter than the pitch, warmer, one line that re-contextualizes. Never rep
 
 ## Existing relationships: do not pitch
 
-Guidance: current customers, stockists, partners, friends of the business, and anyone who has asked not to be contacted. Monday checks this list before adding a target.
+Guidance: current customers, stockists, partners and friends of the business. Monday checks this list before adding a target. People who have asked not to be contacted are not listed here: they are stored in the database as do-not-contact, which blocks them permanently.
 
 - [Name]: [relationship]
 

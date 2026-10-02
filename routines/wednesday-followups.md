@@ -6,16 +6,15 @@ Cadence and tone differ by deal type. The mechanics are the same for all four: c
 
 ## Pre-flight
 
-`node "<AGENT_DIR>/engine/db.mjs" validate`
+`node "<AGENT_DIR>/engine/db.mjs" validate`. If it reports NOT READY, stop.
 
 ## Step 1: Send sync and reply check
 
 1. Run the send sync from RULES section 6. Keep the list of unsent drafts for the report.
 2. Search Gmail for replies in the last 30 days using the reply-detection searches in CONTEXT (brand terms and subject phrases).
-3. For each reply found, set `date_replied` to today and:
-   - A single short reply (acknowledgment, polite decline): `status = replied`.
-   - An active back-and-forth: `status = in-conversation`.
-4. Put every reply at the top of the run report with full context and its deal type. Do not answer replies. The founder does.
+3. Run the bounce search from RULES section 12 for the same 30 days.
+4. Sort every reply, opt-out and bounce per RULES section 12 and update the target to match.
+5. Put every reply at the top of the run report with full context and its deal type. Do not answer replies. The founder does.
 
 ## Step 2: What is due
 
@@ -58,10 +57,11 @@ A target at `follow_up_count >= 2`, past its `follow_up_due`, with no reply:
 ## Run report
 
 1. Replies, with context
-2. Follow-up drafts created, with full text
-3. DM follow-ups handed over
-4. **Unsent drafts still waiting on you**: name, outlet, days waiting. This list is the nudge.
-5. Targets marked inactive
+2. Alerts: opt-outs, bounced addresses, and drafts to delete
+3. Follow-up drafts created, with full text
+4. DM follow-ups handed over
+5. **Unsent drafts still waiting on you**: name, outlet, days waiting. This list is the nudge.
+6. Targets marked inactive
 
 If nothing is due: say "No follow-ups due today" and show `summary`.
 

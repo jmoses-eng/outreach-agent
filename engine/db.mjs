@@ -12,6 +12,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DATA_DIR = process.env.OUTREACH_DATA_DIR || path.join(ROOT, 'data');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
+const CONFIG_FILE = path.join(ROOT, 'config', 'CONTEXT.md');
+const SETUP_MARKER = 'SETUP IN PROGRESS';
 const FILES = {
   targets: path.join(DATA_DIR, 'targets.json'),
   outreach: path.join(DATA_DIR, 'outreach.json'),
@@ -23,8 +25,10 @@ const DEAL_TYPES = ['PR', 'Corporate Gifting', 'Wholesale', 'Exclusive Partnersh
 const STATUSES = [
   'scouted', 'researched', 'concept-developed', 'drafted', 'approved', 'sent', 'replied',
   'in-conversation', 'negotiating', 'agreement', 'in-development', 'placed',
-  'disqualified', 'inactive',
+  'disqualified', 'inactive', 'do-not-contact',
 ];
+const DNC = 'do-not-contact';
+const DEAD = ['disqualified', 'inactive', DNC];
 const CONFIDENCE = ['HIGH', 'MEDIUM', 'LOW'];
 
 const TARGET_DEFAULTS = {
@@ -217,32 +221,45 @@ const commands = {
       try { const n = load(file).length; console.log(`[OK] ${name}: ${n} record(s)`); }
       catch (e) { console.log(`[ERROR] ${name} is CORRUPTED: ${e.message}`); ok = false; }
     }
-    if (!ok) { console.log('Database is not valid. See: node engine/db.mjs backups'); process.exitCode = 1; }
+    if (!ok) console.log('Database is not valid. See: node engine/db.mjs backups');
+    if (!fs.existsSync(CONFIG_FILE)) {
+      console.log('[MISSING] config/CONTEXT.md. The agent is not set up. Say "run setup".'); ok = false;
+    } else if (fs.readFileSync(CONFIG_FILE, 'utf8').includes(SETUP_MARKER)) {
+      console.log('[UNFINISHED] config/CONTEXT.md: setup was started but not finished. Say "run setup" to resume.'); ok = false;
+    } else console.log('[OK] config/CONTEXT.md');
+    if (!ok) { console.log('NOT READY. Do not run a routine.'); process.exitCode = 1; }
   },
 
   'add-target'(args) {
     const input = readInput(args);
     const list = Array.isArray(input) ? input : [input];
     const rows = load(FILES.targets);
-    const added = []; const skipped = [];
+    const added = []; const skipped = []; const blocked = [];
     for (const raw of list) {
       const rec = checkFields(raw, TARGET_DEFAULTS, 'target');
       if (!rec.name && !rec.outlet) fail('A target needs a name or an outlet');
       if (!rec.deal_type) fail(`deal_type is required. Valid: ${DEAL_TYPES.join(', ')}`);
       const dup = findDuplicate(rows, rec);
+      if (dup && dup.status === DNC) {
+        blocked.push({ name: rec.name, outlet: rec.outlet, do_not_contact_id: dup.id });
+        continue;
+      }
       if (dup && !args.flags.force) {
         skipped.push({ name: rec.name, outlet: rec.outlet, duplicate_of_id: dup.id, existing_status: dup.status });
         continue;
       }
-      const sameOutlet = rec.outlet ? rows.filter((r) => norm(r.outlet) === norm(rec.outlet)).map((r) => r.id) : [];
+      const atOutlet = rec.outlet ? rows.filter((r) => norm(r.outlet) === norm(rec.outlet)) : [];
+      const sameOutlet = atOutlet.map((r) => r.id);
+      const dncAtOutlet = atOutlet.filter((r) => r.status === DNC).map((r) => r.id);
       const row = { id: nextId(rows), ...TARGET_DEFAULTS, ...rec, date_discovered: rec.date_discovered ?? today() };
       rows.push(row);
       added.push({ id: row.id, name: row.name, outlet: row.outlet, status: row.status,
-        ...(sameOutlet.length ? { note: `outlet already has record id(s) ${sameOutlet.join(', ')}` } : {}) });
+        ...(sameOutlet.length ? { note: `outlet already has record id(s) ${sameOutlet.join(', ')}` } : {}),
+        ...(dncAtOutlet.length ? { warning: `someone at this outlet asked not to be contacted (id ${dncAtOutlet.join(', ')}). Flag this target to the founder before drafting.` } : {}) });
     }
     if (added.length) save(FILES.targets, rows);
-    out({ added, skipped_as_duplicates: skipped });
-    if (skipped.length) process.exitCode = 2;
+    out({ added, skipped_as_duplicates: skipped, blocked_do_not_contact: blocked });
+    if (skipped.length || blocked.length) process.exitCode = 2;
   },
 
   targets({ flags }) {
@@ -280,6 +297,9 @@ const commands = {
     if (!Object.keys(fields).length) fail('Nothing to update. Use --set key=value or --file');
     const rows = load(FILES.targets);
     const row = rows.find((r) => r.id === id) ?? fail(`No target with id ${args.pos[0]}`);
+    if (row.status === DNC && fields.status && fields.status !== DNC && !args.flags.force) {
+      fail(`Target ${id} is do-not-contact. Only the founder can lift that: re-run with --force if they have said so.`);
+    }
     Object.assign(row, fields);
     save(FILES.targets, rows);
     out({ updated: id, fields });
@@ -343,7 +363,7 @@ const commands = {
     const t = today(); const weekStart = daysAgo(7); const thirtyAgo = daysAgo(30);
     const monthStart = `${t.slice(0, 8)}01`;
     const count = (rows, fn) => rows.filter(fn).length;
-    const dead = ['disqualified', 'inactive'];
+    const dead = DEAD;
     const repliedOn = ['replied', 'in-conversation', 'negotiating', 'agreement', 'in-development', 'placed'];
     const line = (label, value) => console.log(`  ${`${label}:`.padEnd(36)}${value}`);
 
@@ -366,6 +386,7 @@ const commands = {
       line('Concept developed', count(rows, (r) => r.status === 'concept-developed'));
       line('Reply rate (30-day)', `${sent30 ? Math.round((replied30 / sent30) * 1000) / 10 : 0}%`);
       line('Targets with a follow-up sent', count(rows, (r) => r.follow_up_count > 0));
+      line('Do not contact', count(rows, (r) => r.status === DNC));
       line('Confidence HIGH/MED/LOW (active)', `${live('HIGH')} / ${live('MEDIUM')} / ${live('LOW')}`);
     };
 
@@ -432,7 +453,7 @@ const commands = {
 const HELP = `Outreach tracker database
 
   init                              Create the data folder and empty database files
-  validate                          Check that all database files are readable
+  validate                          Pre-flight: database files readable and setup finished
   summary                           Pipeline counts by deal type and status
   report                            Weekly KPI report
 
@@ -443,6 +464,7 @@ const HELP = `Outreach tracker database
   find <text>                       Search name, outlet, email and handle. Run before adding.
   add-target --file <json>          Add one target, or an array of targets. Refuses duplicates
                                     (same email, or same name and outlet) unless --force.
+                                    A do-not-contact match is always refused.
   update-target <id> --set k=v ...  Update fields. Use --file <json> for long text.
 
   add-outreach --file <json>        Save a draft: target_id, subject, draft_text, send_type, status
@@ -457,7 +479,8 @@ const HELP = `Outreach tracker database
   restore <backup file name>        Restore a database file from a backup
 
 Deal types: ${DEAL_TYPES.join(' | ')}
-Statuses:   ${STATUSES.join(' > ')}
+Statuses:   ${STATUSES.slice(0, 12).join(' > ')}
+Terminal:   ${DEAD.join(', ')}
 Data:       ${DATA_DIR}`;
 
 const [cmd, ...rest] = process.argv.slice(2);

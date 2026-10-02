@@ -6,7 +6,7 @@ This is the one day given entirely to Exclusive Partnership: the business as the
 
 ## Pre-flight
 
-`node "<AGENT_DIR>/engine/db.mjs" validate`
+`node "<AGENT_DIR>/engine/db.mjs" validate`. If it reports NOT READY, stop.
 
 ## Step 1: Field research on scouted targets
 
