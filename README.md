@@ -4,6 +4,8 @@ A weekly outreach system for a small product business, run by Claude. It finds a
 
 **It never sends anything.** Every email lands in your Gmail Drafts folder for you to read, edit and send.
 
+**New here? Start with the [wiki](https://github.com/jmoses-eng/outreach-agent/wiki):** installing, the setup interview, your first week, troubleshooting and FAQ.
+
 ## The week
 
 | Day | What it does |
