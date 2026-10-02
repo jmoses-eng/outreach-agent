@@ -1,0 +1,7 @@
+# Your business config and prospect data stay on your machine.
+config/CONTEXT.md
+data/
+
+.claude/settings.local.json
+.DS_Store
+Thumbs.db

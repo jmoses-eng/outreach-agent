@@ -1,0 +1,32 @@
+# Friday: Weekly KPI Report
+
+Read `engine/RULES.md` and `config/CONTEXT.md` first. `<AGENT_DIR>` is the folder containing `engine/`.
+
+## Step 1: Sync, then pull the report
+
+1. Run the send sync from RULES section 6 so "sent this week" is accurate.
+2. `node "<AGENT_DIR>/engine/db.mjs" report`
+
+The report gives, in aggregate and per deal type: discovered, researched, drafted and sent this week; active pipeline; drafts waiting on the founder's send; replied, in-conversation, negotiating, agreement, in-development and concept-developed counts; 30-day reply rate; follow-ups; confidence breakdown. It also gives an Exclusive Partnership block, follow-ups due, and placements this month.
+
+Present it to the founder, reformatted for readability if needed. Do not recompute the numbers yourself. The `report` command is the source of truth.
+
+## Step 2: Replies not yet logged
+
+Search Gmail for the last 7 days using the reply-detection searches in CONTEXT. Flag any reply to outreach that the database does not reflect yet (no `date_replied`), with its target and deal type, and update the status per the reply rules in the Wednesday routine.
+
+## Step 3: Unsent drafts
+
+List every target still at `approved` from the send sync, oldest first, with days waiting. Drafts that are never sent are the most common reason a pipeline stalls.
+
+## Step 4: Strategic note
+
+Three or four sentences:
+
+- What is working, and which lane or deal type needs more targets.
+- Exclusive Partnership movement this week, always. If nothing moved past `scouted`, say so.
+- What needs the founder's attention next week.
+
+## Step 5: Record wins
+
+If the founder reports a placement, an order or a signed partnership, record it with `add-placement --file` and set the target to `placed` with `date_placed`.
