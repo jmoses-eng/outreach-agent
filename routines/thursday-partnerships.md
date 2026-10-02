@@ -12,7 +12,7 @@ This is the one day given entirely to Exclusive Partnership: the business as the
 
 `targets --deal_type "Exclusive Partnership" --status scouted --full`
 
-This covers the seed targets from CONTEXT and anything Monday surfaced. If a seed target named in CONTEXT is not in the database yet, add it at `scouted` first (`find` it before adding).
+This covers the seed targets from CONTEXT and anything Monday surfaced. If a seed target named in CONTEXT is not in the database yet, add it at `scouted` first (check with `find --file` before adding).
 
 For each target, do the research its category requires in CONTEXT. Every category needs:
 

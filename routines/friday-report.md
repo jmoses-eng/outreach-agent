@@ -15,7 +15,7 @@ Present it to the founder, reformatted for readability if needed. Do not recompu
 
 ## Step 2: Replies not yet logged
 
-Search Gmail for the last 7 days using the reply-detection searches in CONTEXT, plus the bounce search from RULES section 12. For anything the database does not reflect yet, flag it with its target and deal type, then sort it per RULES section 12. Opt-outs and bounces go at the top of the report as alerts.
+Search Gmail for the last 7 days using the reply-detection searches in CONTEXT, plus the bounce search from RULES section 12. For anything the database does not reflect yet, flag it with its target and deal type, then sort it per RULES section 12. Suspicious content (RULES section 14), opt-outs and bounces go at the top of the report as alerts.
 
 ## Step 3: Unsent drafts
 

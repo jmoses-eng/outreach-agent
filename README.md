@@ -84,6 +84,10 @@ The database is backed up automatically before every change, in `data/backups/`.
 
 This tool drafts one-to-one emails for you to send. You are the sender, and the laws on commercial email where you and your recipients live apply to you. Read every draft before you send it.
 
+## Security
+
+Found a security problem? Please report it privately. See [SECURITY.md](SECURITY.md).
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
@@ -99,4 +103,5 @@ If you cloned the repository, `git pull` brings in improvements to the engine an
 - **No follow-up without a first send.** Before drafting a follow-up, the agent checks your Gmail sent mail to confirm the original actually went out.
 - **Opt-outs are permanent.** If someone asks not to be contacted, they are marked do-not-contact. The database refuses to add them again or draft for them, and only you can lift it.
 - **Bounces are never retried.** A bounced address is flagged to you and dropped. The agent does not try variations of it.
+- **Planted instructions are ignored.** Emails and web pages the agent reads are treated as information, never instructions. Anything that looks written to steer an AI is quoted at the top of the run report.
 - **No duplicates.** The database refuses to add the same contact twice, and flags when an outlet is already in the pipeline.

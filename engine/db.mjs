@@ -186,7 +186,8 @@ function readInput({ flags, sets }) {
 }
 
 function checkFields(obj, defaults, what) {
-  const unknown = Object.keys(obj).filter((k) => !(k in defaults) && k !== 'id');
+  // Own properties only, so names like __proto__ or constructor cannot pass as fields.
+  const unknown = Object.keys(obj).filter((k) => !Object.hasOwn(defaults, k) && k !== 'id');
   if (unknown.length) {
     fail(`Unknown ${what} field(s): ${unknown.join(', ')}. Valid fields: ${Object.keys(defaults).join(', ')}`);
   }
@@ -302,9 +303,15 @@ const commands = {
   },
 
   // Search before adding, so the same outlet is not pitched twice.
+  // Text found on the web goes in a file (--file with {"query": "..."}), never on the command line.
   find({ pos, flags }) {
-    const q = norm(pos.join(' '));
-    if (!q) fail('Usage: find <text>');
+    let text = pos.join(' ');
+    if (flags.file) {
+      try { text = JSON.parse(fs.readFileSync(flags.file, 'utf8').replace(/^\uFEFF/, '')).query ?? ''; }
+      catch (e) { fail(`Could not read the query from ${flags.file}: ${e.message}`); }
+    }
+    const q = norm(text);
+    if (!q) fail('Usage: find <text>, or find --file <json with "query">');
     const rows = load(FILES.targets).filter((r) =>
       [r.name, r.outlet, r.contact_email, r.contact_handle].some((v) => norm(v).includes(q)));
     out(pick(rows, flags));
@@ -511,7 +518,8 @@ const HELP = `Outreach tracker database
                                     --confidence HIGH,MEDIUM  --lane N  --due  --sent-since DAYS
                                     Output: --full, or --fields id,name,contact_email
   target <id>                       One target in full, with its outreach history
-  find <text>                       Search name, outlet, email and handle. Run before adding.
+  find --file <json>                Search name, outlet, email and handle for {"query": "..."}.
+                                    Run before adding. (find <text> also works for typed searches.)
   add-target --file <json>          Add one target, or an array of targets. Refuses duplicates
                                     (same email, or same name and outlet) unless --force.
                                     A do-not-contact match is always refused.

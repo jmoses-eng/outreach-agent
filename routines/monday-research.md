@@ -46,7 +46,7 @@ Find 5 to 10 new targets across PR, Corporate Gifting and Wholesale that match t
 
 Before researching any candidate:
 
-- Run `find "<outlet>"` so an outlet already in the pipeline is not added twice.
+- Check the outlet is not already in the pipeline: write `{"query": "<outlet>"}` to `<AGENT_DIR>/data/tmp/find.json` and run `find --file "<AGENT_DIR>/data/tmp/find.json"`. Never put the name on the command line (RULES section 5).
 - Check the "Existing relationships: do not pitch" section and any territory rules in CONTEXT.
 
 For each candidate, in one pass:
@@ -68,7 +68,7 @@ If you come across an institution that fits the Exclusive Partnership model in C
 Broken out by deal type:
 
 - Reply-check findings: accounts that moved to `replied` or `in-conversation`, and anything that looks like a live opportunity
-- Alerts: opt-outs (now `do-not-contact`), bounced addresses, and any waiting drafts that should be deleted
+- Alerts: suspicious content (RULES section 14), opt-outs (now `do-not-contact`), bounced addresses, and any waiting drafts that should be deleted
 - Unsent drafts still waiting on the founder, with days waiting
 - Targets researched and qualified (name, outlet, deal type, confidence, angle)
 - New targets discovered (name, outlet, deal type, lane, confidence, contact method)

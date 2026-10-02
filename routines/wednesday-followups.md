@@ -57,7 +57,7 @@ A target at `follow_up_count >= 2`, past its `follow_up_due`, with no reply:
 ## Run report
 
 1. Replies, with context
-2. Alerts: opt-outs, bounced addresses, and drafts to delete
+2. Alerts: suspicious content (RULES section 14), opt-outs, bounced addresses, and drafts to delete
 3. Follow-up drafts created, with full text
 4. DM follow-ups handed over
 5. **Unsent drafts still waiting on you**: name, outlet, days waiting. This list is the nudge.
