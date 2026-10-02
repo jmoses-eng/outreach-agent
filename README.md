@@ -50,6 +50,15 @@ Expect the first week's drafts to be rougher than later ones. Tell Claude what y
 2. Open Gmail Drafts. Edit and send what you like. Delete what you do not.
 3. If a draft is wrong in a way that will keep happening, tell Claude. It records the correction so later drafts follow it.
 
+## It learns from your edits
+
+Edit drafts as much as you like before sending. Every Friday the agent compares each email you sent with the draft it wrote, and notices what you deleted without sending.
+
+- When the same change shows up in 3 or more sent emails (say, you keep shortening the subject line), it becomes a rule in your config under "Learned from your edits", and the Friday report tells you.
+- If your edits suggest a fact in your config is wrong, such as a price, it asks you rather than changing it.
+- Say "remove the learned rule about subject lines" to undo one.
+- The Friday report tracks how many emails you sent exactly as drafted. That share should rise as it learns.
+
 Scheduled runs happen while the Claude app is open. If it is closed at the scheduled time, the run starts the next time you open it.
 
 ## Changing things
@@ -63,6 +72,7 @@ Scheduled runs happen while the Claude app is open. If it is closed at the sched
 | | Location | Shared? |
 |---|---|---|
 | Your business configuration | `config/CONTEXT.md` | No. Stays on your machine. |
+| A filled example, for a fictional business | `config/CONTEXT.example.md` | Yes. Open it to see the level of detail that works. |
 | Your prospects, drafts and wins | `data/` | No. Stays on your machine. |
 | The engine and routines | `engine/`, `routines/` | Yes. This is what the repository contains. |
 

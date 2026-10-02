@@ -98,6 +98,7 @@ Run it with no command to see every command. The ones routines use most:
 | Follow-ups due | `targets --due --full` |
 | A date N business days out | `bizdays 5` or `bizdays 5 --from 2026-01-05` |
 | Weekly report | `report` |
+| Sent emails that differ from their drafts | `edits` |
 
 Rules for writing:
 
@@ -111,16 +112,21 @@ Target fields: `name, outlet, beat, contact_email, contact_handle, contact_metho
 
 `contact_method` is one of `email`, `instagram_dm`, `linkedin_dm`, `phone`.
 
-Outreach fields: `target_id, draft_version, subject, draft_text, send_type, status, sent_at, founder_notes`. `send_type` is `pitch`, `follow_up_1` or `follow_up_2`.
+Outreach fields: `target_id, draft_version, subject, draft_text, send_type, status, sent_at, founder_notes, gmail_draft_id, sent_text, edit_notes, learned_at`. `send_type` is `pitch`, `follow_up_1` or `follow_up_2`. Outreach `status` is `drafted`, `approved`, `sent` or `discarded`.
+
+Whenever a routine creates a Gmail draft, it saves the draft ID the Gmail tool returns as `gmail_draft_id` on the outreach record. The send sync and the learning pass depend on it.
 
 ## 6. Send sync
 
 Drafts are created unattended, so the database cannot know whether the founder pressed send. Before any routine acts on "what was sent", it runs this sync:
 
-1. List targets at `status = approved` with `contact_method = email`.
-2. For each, search Gmail sent mail for a message to that `contact_email`.
-3. **Found in sent mail:** set `status = sent`, `date_sent` = the actual send date, and recompute `follow_up_due` from that date using the deal type's cadence in CONTEXT. Set the matching outreach record to `status = sent`, `sent_at` = the same date.
-4. **Not in sent mail:** leave everything alone. Collect it for the "Unsent drafts still waiting on you" list, with how many days the draft has been sitting.
+1. List outreach records waiting on a send: `outreach --status approved`. This covers first pitches and follow-ups.
+2. For each, search Gmail sent mail for the message to that target's `contact_email` (matching the subject, or the thread for a follow-up).
+3. **Found in sent mail:**
+   - Outreach record: `status = sent`, `sent_at` = the actual send date, and `sent_text` = the body exactly as sent. Save only what the founder wrote: leave out any quoted earlier messages ("On ... wrote:") and anything the mail client added below the sign-off. Long text goes through `update-outreach <id> --file`.
+   - If it was the first pitch, the target too: `status = sent`, `date_sent` = the same date, and `follow_up_due` recomputed from that date using the deal type's cadence in CONTEXT.
+4. **Not in sent mail, and the Gmail draft still exists:** leave everything alone. Collect it for the "Unsent drafts still waiting on you" list, with how many days the draft has been sitting.
+5. **Not in sent mail, and the Gmail draft is gone:** the founder deleted it, which means they chose not to send it. Set the outreach record to `status = discarded`. If it was the first pitch, set the target to `status = inactive` with the note "Draft deleted unsent, <date>". Report it so the founder can reverse it. If the Gmail tools cannot tell whether a draft exists, treat it as step 4.
 
 Never draft a follow-up for a target whose first message was not found in sent mail.
 
@@ -147,6 +153,7 @@ There is no Gmail draft for these, so:
 - Signed with the sign-off in CONTEXT.
 - No pricing, minimums or sales PDFs in a first touch, unless CONTEXT says otherwise for that deal type.
 - Reads like one person wrote it for one person.
+- Follows the "Founder corrections" and "Learned from your edits" sections of CONTEXT. Where they disagree, Founder corrections win.
 
 ## 10. Unattended runs
 
@@ -183,3 +190,38 @@ Search: `from:(mailer-daemon OR postmaster) OR subject:("undeliverable" OR "deli
 - Set `status = disqualified` and add to `notes`: "Email bounced: <address>, <date>. Needs a newly verified contact to re-enter."
 - Never retry the same address and never try a guessed variant of it. A bounce usually means the address was not verified properly in the first place (section 2).
 - Report bounces as alerts in the run report. Do not draft a replacement message. If a later Monday finds a verified contact from an official page, the organization can re-enter as a new, properly verified record.
+
+## 13. Learning from the founder's edits
+
+The best evidence of what the founder wants is what they actually sent, and what they deleted. The send sync (section 6) records both. Friday turns them into rules.
+
+**1. Review this week's edits.** Run `edits`. It lists sent emails not yet reviewed. `sent_as_drafted` holds the ones sent word for word. Each edited one has a `similarity` score: near 1.00 is a light touch, below 0.80 is a heavy rewrite. Even a one-word or punctuation change counts as an edit, because small repeated changes are the patterns worth learning.
+
+- Records in `sent_as_drafted` need nothing beyond `learned_at` = today.
+- For each edited record, compare `draft_text` with `sent_text` and sort every change into one of these:
+
+| Kind of change | Example | What to do |
+|---|---|---|
+| A fact about that one recipient | Fixed their name or the event they produced | Nothing. It is not a pattern. |
+| A fact about the business | Changed a price, a product name, a lead time | Do not edit CONTEXT. Flag it to the founder: "Your edit suggests CONTEXT says X but the real answer is Y." Business facts only change on their word. |
+| Voice or structure | Cut the second paragraph, removed a word, softened the ask, shortened the subject | A candidate pattern. Describe it in one line. |
+
+- Save the one-line description(s) as `edit_notes` and set `learned_at` = today on every reviewed record.
+
+**2. Promote patterns that repeat.** Run `edits --all` to see the `edit_notes` from earlier weeks too. A voice or structure pattern becomes a rule only when it shows up in **at least 3 different sent emails**. Then:
+
+- Add it to the "Learned from your edits" section of CONTEXT as one instruction, dated, with the evidence: "- 2026-03-06: Keep subject lines under six words. (Shortened in 4 of 5 sends.)"
+- Never add a rule that contradicts the Voice Rules or Founder corrections. Report the conflict instead and let the founder decide.
+- If an existing learned rule keeps getting undone in later edits, remove it and say so.
+
+**3. Read the deletions.** Look at outreach records `discarded` since last Friday. If 3 or more share something (the same lane, deal type, kind of organization or angle), report it as a likely targeting problem with a suggested change. Do not change targeting rules yourself.
+
+**4. Report it.** Friday's report gets a "What I learned this week" section:
+
+- New learned rules, each with how to undo it ("say: remove the learned rule about subject lines")
+- Patterns seen once or twice, being watched
+- Facts in CONTEXT the edits suggest are wrong
+- What the deleted drafts had in common, if anything
+- The "Sent as drafted" share from the report, compared with last week if known. A rising share means the drafts are getting closer to the founder's voice.
+
+When the founder says to remove a learned rule, delete it from CONTEXT and add a Founder correction saying not to relearn it.

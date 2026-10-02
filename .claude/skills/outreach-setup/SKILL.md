@@ -47,6 +47,10 @@ Briefly:
 
 ## Step 3: The interview, saved section by section
 
+**Calibrate first.** Read `config/CONTEXT.example.md`, a fully filled config for a fictional ceramics studio. It shows the level of detail that produces good drafts: named seed targets, concrete discovery sources, real numbers, voice rules that ban specific words. Aim every section at that level. Never copy its facts, names or numbers into their config. When an answer is vague ("small businesses", "people who like nice things"), use the matching example section to show them what a specific answer looks like, and ask again.
+
+Tell the owner the example exists and that they can open it to see where this is heading.
+
 **Before the first question** (fresh setup only): copy `config/CONTEXT.template.md` to `config/CONTEXT.md`. The copy's first line is the marker `<!-- SETUP IN PROGRESS. Sections done: none -->`. Leave the rest of the template in place for now; unfinished sections keep their placeholders until you reach them.
 
 **After each section is answered:**
@@ -154,5 +158,6 @@ Tell them, briefly:
 - If a morning's run produced no report, a permission prompt is the first thing to check.
 - Their daily job: read the run report, then go to Gmail Drafts, edit and send what they like, delete what they do not.
 - Expect the first week's drafts to be rougher than later ones. Every correction they give is recorded and followed from then on.
+- **Edit drafts freely before sending.** Every Friday the agent compares what they sent with what it drafted. When the same change shows up in 3 or more sent emails, it becomes a rule under "Learned from your edits" in their config, and the report says so. Deleting a draft instead of sending it is a signal too. They can remove any learned rule by saying so.
 - To change anything about the business: say "update my outreach setup".
 - Their config and prospect data stay on their machine in `config/CONTEXT.md` and `data/`. Both are excluded from version control, so they are also not backed up anywhere else.

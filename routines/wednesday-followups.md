@@ -38,7 +38,7 @@ Save with `add-outreach --file`, `send_type` = `follow_up_1` or `follow_up_2`.
 
 ## Step 4: Create the follow-up drafts (unattended, nothing sends)
 
-**Email targets:** create a Gmail draft in the sender account named in CONTEXT, threaded as a reply to the original message where the thread is available. Never call a send tool.
+**Email targets:** create a Gmail draft in the sender account named in CONTEXT, threaded as a reply to the original message where the thread is available. Never call a send tool. Save the draft ID the tool returns: `update-outreach <outreach id> --set gmail_draft_id=<id>`. Then `update-outreach <outreach id> --set status=approved`, so the next send sync picks it up.
 
 **DM and LinkedIn targets:** follow RULES section 7. Do not change `follow_up_count` or `follow_up_due` until the founder confirms the DM was posted.
 

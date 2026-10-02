@@ -59,7 +59,7 @@ Save each draft: write `{ "target_id": <id>, "subject": "...", "draft_text": "..
 
 **Email targets**
 
-1. Create a Gmail draft with the Gmail connector's draft-creation tool, in the sender account named in CONTEXT. To = `contact_email`, Subject = the subject line, Body = the full draft text.
+1. Create a Gmail draft with the Gmail connector's draft-creation tool, in the sender account named in CONTEXT. To = `contact_email`, Subject = the subject line, Body = the full draft text. Save the draft ID the tool returns: `update-outreach <outreach id> --set gmail_draft_id=<id>`.
 2. `update-target <id> --set status=approved --set date_approved=<today> --set follow_up_due=<date>` where the date comes from `bizdays <n>` using the first follow-up interval for that deal type in CONTEXT.
 3. `update-outreach <outreach id> --set status=approved`.
 

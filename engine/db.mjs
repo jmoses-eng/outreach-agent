@@ -46,6 +46,7 @@ const TARGET_DEFAULTS = {
 const OUTREACH_DEFAULTS = {
   target_id: null, draft_version: 1, subject: null, draft_text: null,
   send_type: 'pitch', status: 'drafted', created_at: null, sent_at: null, founder_notes: null,
+  gmail_draft_id: null, sent_text: null, edit_notes: null, learned_at: null,
 };
 const PLACEMENT_DEFAULTS = {
   target_id: null, outlet: null, url: null, publish_date: null, lane: 0, notes: null,
@@ -119,6 +120,24 @@ function save(file, rows) {
 
 const nextId = (rows) => rows.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0) + 1;
 const norm = (s) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+// How much of the draft survived into what was sent: 1 = sent as drafted.
+// Word-level longest common subsequence, ignoring case, spacing and punctuation.
+function similarity(a, b) {
+  const words = (s) => String(s ?? '').toLowerCase().split(/\s+/).map((w) => w.replace(/[^\p{L}\p{N}]/gu, '')).filter(Boolean);
+  const x = words(a); const y = words(b);
+  if (!x.length && !y.length) return 1;
+  let prev = new Array(y.length + 1).fill(0);
+  for (let i = 1; i <= x.length; i++) {
+    const cur = [0];
+    for (let j = 1; j <= y.length; j++) cur[j] = x[i - 1] === y[j - 1] ? prev[j - 1] + 1 : Math.max(prev[j], cur[j - 1]);
+    prev = cur;
+  }
+  return Math.round((2 * prev[y.length] / (x.length + y.length)) * 100) / 100;
+}
+// Sent as drafted means the same text once spacing is ignored, so a removed comma or dash still counts as an edit.
+const asDrafted = (a, b) => String(a ?? '').replace(/\s+/g, ' ').trim() === String(b ?? '').replace(/\s+/g, ' ').trim();
+const LIGHT_EDIT = 0.8; // similarity at or above: lightly edited; below: heavily edited
 
 function coerce(key, value) {
   if (value === 'null' || value === '') return null;
@@ -324,6 +343,25 @@ const commands = {
     out(rows);
   },
 
+  // Sent messages that differ from the draft, for the Friday learning pass (RULES section 13).
+  edits({ flags }) {
+    const targets = load(FILES.targets);
+    let rows = load(FILES.outreach).filter((o) => o.sent_text && o.draft_text);
+    if (!flags.all) rows = rows.filter((o) => !o.learned_at);
+    const result = rows.map((o) => {
+      const t = targets.find((x) => x.id === o.target_id) ?? {};
+      return { id: o.id, target_id: o.target_id, outlet: t.outlet ?? null, deal_type: t.deal_type ?? null,
+        send_type: o.send_type, sent_at: o.sent_at, as_drafted: asDrafted(o.draft_text, o.sent_text),
+        similarity: similarity(o.draft_text, o.sent_text),
+        draft_text: o.draft_text, sent_text: o.sent_text, edit_notes: o.edit_notes, learned_at: o.learned_at };
+    });
+    out({
+      sent_as_drafted: result.filter((r) => r.as_drafted).map((r) => r.id),
+      edited: result.filter((r) => !r.as_drafted || flags.all),
+      ...(flags.all ? {} : { note: 'Mark each reviewed record with update-outreach <id> --set learned_at=<today> (and edit_notes for edited ones).' }),
+    });
+  },
+
   'update-outreach'(args) {
     const id = Number(args.pos[0]);
     const fields = checkFields(readInput(args), OUTREACH_DEFAULTS, 'outreach');
@@ -397,6 +435,18 @@ const commands = {
 
     const ep = targets.filter((r) => r.deal_type === 'Exclusive Partnership');
     const waiting = ep.filter((r) => r.status === 'scouted');
+    const sentRecent = load(FILES.outreach).filter((o) => o.sent_text && o.draft_text && o.sent_at && o.sent_at >= thirtyAgo)
+      .map((o) => (asDrafted(o.draft_text, o.sent_text) ? 1 : Math.min(similarity(o.draft_text, o.sent_text), 0.99)));
+    console.log('\nDRAFT QUALITY (emails sent in the last 30 days)');
+    if (!sentRecent.length) console.log('  No sent emails compared yet');
+    else {
+      const asIs = sentRecent.filter((s) => s === 1).length;
+      const light = sentRecent.filter((s) => s < 1 && s >= LIGHT_EDIT).length;
+      line('Sent as drafted', `${asIs} of ${sentRecent.length} (${Math.round((asIs / sentRecent.length) * 100)}%)`);
+      line('Lightly edited', light);
+      line('Heavily edited', sentRecent.length - asIs - light);
+    }
+
     console.log('\nEXCLUSIVE PARTNERSHIP PIPELINE');
     line('Scouted, not yet field-researched', waiting.length);
     line('Researched or further along', count(ep, (r) => !['scouted', 'disqualified'].includes(r.status)));
@@ -470,6 +520,8 @@ const HELP = `Outreach tracker database
   add-outreach --file <json>        Save a draft: target_id, subject, draft_text, send_type, status
   outreach [--target_id N] [--status S]
   update-outreach <id> --set k=v ...
+  edits [--all]                     Sent emails vs their drafts, with a similarity score.
+                                    Default: not yet reviewed by the learning pass.
 
   add-placement --file <json>       Record a win: target_id, outlet, url, publish_date, lane, notes
   placements

@@ -124,6 +124,7 @@ Matching rules: use one relevant name per message, matched to the prospect (for 
 - Minimums, lead time, payment terms: [details]
 - What an account gets: [photography, shelf cards, reorder turnaround]
 - Wholesale sheet PDF: [file name, or "none"]. Sent on reply or in follow-up 1, not in the first message.
+- First-touch exception: [what pricing, if any, may appear in a first wholesale message, for example "retail price, margin and opening minimum only", or "none"]
 
 **Target store fit:** [price range, kind of customer, what their shelves look like]
 
@@ -202,6 +203,12 @@ Subject: [...]
 Subject: [...]
 
 [Body]
+
+## Learned from your edits
+
+Guidance: written by the Friday learning pass, not by hand. A rule appears here only after the same edit shows up in at least 3 sent emails. Tell Claude to remove any rule you disagree with.
+
+- None yet.
 
 ## Founder corrections
 

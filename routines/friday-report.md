@@ -29,6 +29,10 @@ Three or four sentences:
 - Exclusive Partnership movement this week, always. If nothing moved past `scouted`, say so.
 - What needs the founder's attention next week.
 
-## Step 5: Record wins
+## Step 5: Learn from the founder's edits
+
+Run the learning pass in RULES section 13: review this week's sent emails against their drafts, promote patterns that have repeated in at least 3 sends into "Learned from your edits" in CONTEXT, read what the deleted drafts had in common, and add a "What I learned this week" section to the report.
+
+## Step 6: Record wins
 
 If the founder reports a placement, an order or a signed partnership, record it with `add-placement --file` and set the target to `placed` with `date_placed`.
