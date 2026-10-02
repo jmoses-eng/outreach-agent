@@ -151,7 +151,8 @@ function coerce(key, value) {
 
 // Flags: --key value, bare --flag (true), repeatable --set key=value. Everything else is positional.
 function parseArgs(argv) {
-  const flags = {}; const sets = {}; const pos = [];
+  // No prototype, so a key like __proto__ is kept as a plain key and then rejected by name.
+  const flags = Object.create(null); const sets = Object.create(null); const pos = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (!a.startsWith('--')) { pos.push(a); continue; }
